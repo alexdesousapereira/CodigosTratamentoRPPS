@@ -104,6 +104,50 @@ class ann_discrete:
 
         return premium * B
 
+
+    def i_ax_tmp(self, i,csal, age, tmp, B=1, due=False):
+
+         """
+         This function calculates the premium of a term life annuitiy.
+
+         Parameters:
+         -----------
+         i: float.
+            Nominal rate.
+
+         age: int.
+               Age.
+
+         tmp: int.
+               Number of year of contract.
+
+         B: float.
+            Benefit.
+
+         due: bool.
+               If true the premium refers to an annuity which benefit is payd immediatly.
+
+         Returns:
+         --------
+
+         Premium.
+         """
+
+         N = age + tmp
+         qx = self.table[age:N]  # Cutting down probability distribution
+         px = list(1 - qx)
+         t = np.arange(1, tmp + 1)
+         v = ((1+csal)/(1 + i) )
+
+         if due:
+               px = list(1 - qx[:-1])  # Calculating 1_p_x
+               px.insert(0, 1)  # setting 0_p_x = 1
+               t = t - 1
+
+         premium = sum(v**t * np.cumprod(px))
+
+         return premium * B
+
     def def_ax(self, i, age, n_def, B=1, due=False):
         """
         This function calculates the premium of a deffered life annuitiy.
@@ -170,3 +214,38 @@ class ann_discrete:
         ax_temp = self.ax_tmp(i, age=age + n_def, tmp=tmp, due=due)
 
         return diff * ax_temp * B
+
+    def def_i_ax_tmp(self, i,csal, age, n_def, tmp, B=1, due=False):
+         """
+         This function calculates the premium of a deffered term life annuity.
+
+         Parameters:
+         -----------
+         i: float.
+            Nominal rate.
+
+         age: int.
+               Age.
+
+         n_def: int.
+               Number of year of deffering.
+
+         tmp: int.
+               Number of years of contract.
+
+         B: float.
+            Benefit.
+
+         due: bool.
+               If true the premium refers to an annuity which benefit is payd immediatly.
+
+         Returns:
+         --------
+
+         Premium.
+         """
+
+         diff = isrc_discrete(table=self.table).Pure_Endow(i=i,csal=csal, age=age, tmp=n_def)
+         i_ax_temp = self.i_ax_tmp(i,csal,age=age + n_def, tmp=tmp, due=due)
+
+         return diff * i_ax_temp * B
